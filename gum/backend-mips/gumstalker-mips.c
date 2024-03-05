@@ -48,6 +48,11 @@ gum_stalker_exclude (GumStalker * self,
 {
 }
 
+void
+gum_stalker_iterator_put_chaining_return(GumStalkerIterator * self)
+{
+}
+
 gint
 gum_stalker_get_trust_threshold (GumStalker * self)
 {
