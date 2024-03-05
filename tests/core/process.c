@@ -24,7 +24,7 @@
 #endif
 
 #if defined (HAVE_LINUX)
-# include "backend-linux/gumlinux.h"
+# include "gum/gumlinux.h"
 #endif
 
 #define TESTCASE(NAME) \
@@ -733,12 +733,14 @@ TESTCASE (module_import_slot_should_contain_correct_value)
 
   unsupported_on_this_os = slot == NULL;
   if (unsupported_on_this_os)
+  {
+    g_print ("<skipping, not yet supported on this OS> ");
     return;
+  }
 
-  actual_value =
-      gum_strip_code_address (GPOINTER_TO_SIZE (*slot));
-  expected_value =
-      gum_strip_code_address (gum_module_find_export_by_name (NULL, "malloc"));
+  actual_value = gum_strip_code_address (GPOINTER_TO_SIZE (*slot));
+  expected_value = gum_strip_code_address (gum_module_find_export_by_name (
+        gum_process_query_libc_name (), "malloc"));
 
   g_assert_cmphex (actual_value, ==, expected_value);
 }
@@ -915,7 +917,7 @@ TESTCASE (get_set_system_error)
 
 #ifdef HAVE_DARWIN
 
-#include <gum/backend-darwin/gumdarwin.h>
+#include "gum/gumdarwin.h"
 #include <mach/mach.h>
 
 static mach_port_t

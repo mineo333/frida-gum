@@ -403,6 +403,20 @@ makeEnumerateRanges(Process);
 makeEnumerateApi(Process, 'enumerateMallocRanges', 0);
 
 Object.defineProperties(Process, {
+  runOnThread: {
+    enumerable: true,
+    value: function (threadId, callback) {
+      return new Promise((resolve, reject) => {
+        Process._runOnThread(threadId, () => {
+          try {
+            resolve(callback());
+          } catch (e) {
+            reject(e);
+          }
+        });
+      });
+    },
+  },
   findModuleByAddress: {
     enumerable: true,
     value: function (address) {
@@ -470,6 +484,24 @@ if (Process.findRangeByAddress === undefined) {
     }
   });
 }
+
+Object.defineProperties(Thread, {
+  backtrace: {
+    enumerable: true,
+    value: function (cpuContext = null, backtracerOrOptions = {}) {
+      const options = (typeof backtracerOrOptions === 'object')
+          ? backtracerOrOptions
+          : { backtracer: backtracerOrOptions };
+
+      const {
+        backtracer = Backtracer.ACCURATE,
+        limit = 0,
+      } = options;
+
+      return Thread._backtrace(cpuContext, backtracer, limit);
+    }
+  },
+});
 
 if (globalThis.Interceptor !== undefined) {
   Object.defineProperties(Interceptor, {

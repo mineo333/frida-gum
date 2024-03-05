@@ -347,6 +347,7 @@ namespace Gum {
 
 	namespace Memory {
 		public bool is_readable (void * address, size_t len);
+		public bool query_protection (void * address, out Gum.PageProtection prot);
 		public uint8[] read (Address address, size_t len);
 		public bool write (Address address, uint8[] bytes);
 		public bool patch_code (void * address, size_t size, Gum.Memory.PatchApplyFunc apply);
@@ -562,6 +563,7 @@ namespace Gum {
 		public string name;
 		public string module;
 		public Gum.Address address;
+		public Gum.Address slot;
 	}
 
 	[CCode (cprefix = "GUM_EXPORT_")]

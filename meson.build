@@ -1,8 +1,8 @@
 project('frida-gum', 'c', 'cpp',
   version: '1.0.0',
-  meson_version: '>=0.59.0',
+  meson_version: '>=1.1.0',
   default_options: [
-    'c_std=gnu99',
+    'c_std=gnu99,c99',
   ],
 )
 
@@ -430,6 +430,9 @@ else
 endif
 
 if get_option('devkits').length() != 0
+  if not static
+    error('Devkits can only be generated from static libraries')
+  endif
   mkdevkit = find_program('./releng/mkdevkit.py')
   uninstalled_dir = meson.global_build_root() / 'meson-uninstalled'
   devkit_options = [
@@ -652,6 +655,14 @@ if host_os_family == 'windows'
     language: languages)
 endif
 
+if cc.get_argument_syntax() == 'msvc'
+  add_project_arguments(
+    '/wd4116',
+    '/wd4244',
+    '/wd5051',
+    language: languages)
+endif
+
 if host_os_family == 'linux'
   add_project_arguments('-D_GNU_SOURCE=1', language: languages)
 endif
@@ -663,31 +674,45 @@ endif
 gum_incdirs = [
   include_directories('.'),
   include_directories('gum'),
-  include_directories('gum/arch-x86'),
-  include_directories('gum/arch-arm'),
-  include_directories('gum/arch-arm64'),
-  include_directories('gum/arch-mips'),
+  include_directories('gum' / 'arch-x86'),
+  include_directories('gum' / 'arch-arm'),
+  include_directories('gum' / 'arch-arm64'),
+  include_directories('gum' / 'arch-mips'),
   include_directories('libs'),
-  include_directories('libs/gum/heap'),
-  include_directories('libs/gum/prof'),
+  include_directories('libs' / 'gum' / 'heap'),
+  include_directories('libs' / 'gum' / 'prof'),
 ]
 
 if host_os_family == 'windows'
   gum_incdirs += [
-    include_directories('ext/dbghelp'),
+    include_directories('gum' / 'backend-windows' / 'include'),
+    include_directories('gum' / 'backend-dbghelp' / 'include'),
+    include_directories('ext' / 'dbghelp'),
   ]
 endif
 
 if host_os_family == 'darwin'
-  gum_incdirs += [
-    include_directories('gum/backend-darwin'),
-  ]
+  gum_incdirs += include_directories('gum' / 'backend-darwin' / 'include')
+endif
+
+if host_os_family == 'linux'
+  gum_incdirs += include_directories('gum' / 'backend-linux' / 'include')
+endif
+
+if host_os_family == 'freebsd'
+  gum_incdirs += include_directories('gum' / 'backend-freebsd' / 'include')
+endif
+
+if host_os_family == 'qnx'
+  gum_incdirs += include_directories('gum' / 'backend-qnx' / 'include')
 endif
 
 if host_os_family == 'linux' or host_os_family == 'qnx'
-  gum_incdirs += [
-    include_directories('gum/backend-elf'),
-  ]
+  gum_incdirs += include_directories('gum' / 'backend-elf')
+endif
+
+if libunwind_dep.found()
+  gum_incdirs += include_directories('gum' / 'backend-libunwind' / 'include')
 endif
 
 install_header_basedir = 'frida-' + api_version
